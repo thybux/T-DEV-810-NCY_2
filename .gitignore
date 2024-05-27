@@ -1,1 +1,6 @@
 venv
+src/data
+src/labeled
+.DS_Store
+src/.DS_Store
+.idea
