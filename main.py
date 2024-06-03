@@ -6,7 +6,7 @@ from src.visualization import history_plot
 
 
 def main():
-    # labeliser les données
+    # Labeliser les données
     data_dir = 'src/data/chest_Xray'
 
     df = generate_labeled_data(data_dir)
@@ -17,13 +17,15 @@ def main():
     # Préparer les données
     df = pd.read_csv('src/labeled/labeled_dataset.csv')
 
+    label_map = {'Healthy': 0, 'Pneumonia': 1}
+
     train_df = df[df['type'] == 'train']
     val_df = df[df['type'] == 'val']
     test_df = df[df['type'] == 'test']
 
-    train_dataset = create_dataset(train_df)
-    val_dataset = create_dataset(val_df)
-    test_dataset = create_dataset(test_df)
+    train_dataset = create_dataset(train_df, label_map)
+    val_dataset = create_dataset(val_df, label_map)
+    test_dataset = create_dataset(test_df, label_map)
 
     # Entraîner le modèle
     model, history, val_loss, val_acc = model_ia(train_dataset, val_dataset, test_dataset)

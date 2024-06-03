@@ -6,20 +6,14 @@ from tensorflow.keras.preprocessing.image import img_to_array, load_img
 from tensorflow.keras.utils import to_categorical
 
 
-def process_directory(directory, label, type):
+def process_directory(directory, label, data_type):
     data = []
     for subdir, _, files in os.walk(directory):
         for file in files:
-            if file.endswith('.jpeg') or file.endswith('.jpg') or file.endswith('.png'):
+            if file.endswith(('.jpeg', '.jpg', '.png')):
                 filepath = os.path.join(subdir, file)
-                # Déduire le sous-label à partir du nom de fichier
-                if 'virus' in file:
-                    sublabel = 'Viral'
-                elif 'bacteria' in file:
-                    sublabel = 'Bacterial'
-                else:
-                    sublabel = 'Unknown'
-                data.append((filepath, label, sublabel, type))
+                sublabel = 'Viral' if 'virus' in file else ('Bacterial' if 'bacteria' in file else 'Unknown')
+                data.append((filepath, label, sublabel, data_type))
     return data
 
 
@@ -40,18 +34,23 @@ def preprocess_image(filepath, label, label_map, target_size=(150, 150)):
     image = load_img(filepath, target_size=target_size)
     image = img_to_array(image)
     image = image / 255.0
-    label = to_categorical(label, num_classes=len(label_map))
+    label = to_categorical(label_map[label], num_classes=len(label_map))
     return image, label
 
 
-def create_dataset(df, batch_size=32):
+def create_dataset(df, label_map, batch_size=32):
     filepaths = df['filepath'].values
     labels = df['label'].values
 
-    dataset = tf.data.Dataset.from_tensor_slices((filepaths, labels))
+    def generator():
+        for filepath, label in zip(filepaths, labels):
+            yield preprocess_image(filepath, label, label_map)
+
+    dataset = tf.data.Dataset.from_generator(generator, output_signature=(
+        tf.TensorSpec(shape=(150, 150, 3), dtype=tf.float32),
+        tf.TensorSpec(shape=(len(label_map),), dtype=tf.float32)))
+
     dataset = dataset.shuffle(buffer_size=len(df))
-    dataset = dataset.map(lambda x, y: tf.py_function(preprocess_image, [x, y], [tf.float32, tf.float32]),
-                          num_parallel_calls=tf.data.AUTOTUNE)
     dataset = dataset.batch(batch_size)
     dataset = dataset.prefetch(buffer_size=tf.data.AUTOTUNE)
     return dataset
