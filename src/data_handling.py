@@ -20,14 +20,19 @@ def process_directory(directory, label, data_type):
     return data
 
 
-def generate_labeled_data(data_dir):
+def generate_labeled_data(data_dir, already_exists=False, is_increased=False):
     data = []
-    data += process_directory(os.path.join(data_dir, 'train/NORMAL'), 'Healthy', 'train')
-    data += process_directory(os.path.join(data_dir, 'train/PNEUMONIA'), 'Pneumonia', 'train')
-    data += process_directory(os.path.join(data_dir, 'val/NORMAL'), 'Healthy', 'val')
-    data += process_directory(os.path.join(data_dir, 'val/PNEUMONIA'), 'Pneumonia', 'val')
-    data += process_directory(os.path.join(data_dir, 'test/NORMAL'), 'Healthy', 'test')
-    data += process_directory(os.path.join(data_dir, 'test/PNEUMONIA'), 'Pneumonia', 'test')
+    print('directory', data_dir)
+    if is_increased & already_exists:
+        data += process_directory(os.path.join(data_dir), 'Healthy', 'train')
+
+    if not already_exists:
+        data += process_directory(os.path.join(data_dir, 'train/NORMAL'), 'Healthy', 'train')
+        data += process_directory(os.path.join(data_dir, 'train/PNEUMONIA'), 'Pneumonia', 'train')
+        data += process_directory(os.path.join(data_dir, 'val/NORMAL'), 'Healthy', 'val')
+        data += process_directory(os.path.join(data_dir, 'val/PNEUMONIA'), 'Pneumonia', 'val')
+        data += process_directory(os.path.join(data_dir, 'test/NORMAL'), 'Healthy', 'test')
+        data += process_directory(os.path.join(data_dir, 'test/PNEUMONIA'), 'Pneumonia', 'test')
 
     df = pd.DataFrame(data, columns=['filepath', 'label', 'sublabel', 'type'])
     return df
