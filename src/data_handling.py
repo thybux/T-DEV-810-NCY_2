@@ -22,7 +22,6 @@ def process_directory(directory, label, data_type):
 
 def generate_labeled_data(data_dir, already_exists=False, is_increased=False):
     data = []
-    print('directory', data_dir)
     if is_increased & already_exists:
         data += process_directory(os.path.join(data_dir), 'Healthy', 'train')
 
@@ -89,6 +88,6 @@ def increase_data(data, save_dir, copy):
         # Générer des images augmentées
         for j, batch in enumerate(
                 datagen.flow(img_array, batch_size=1, save_to_dir=save_dir, save_prefix=f'Healthy_{i}',
-                             save_format='png')):
+                             save_format='jpeg')):
             if j >= copy:
                 break

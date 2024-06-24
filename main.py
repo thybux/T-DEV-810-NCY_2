@@ -14,7 +14,7 @@ def main():
     save_dir_train = 'src/data/augmented/train'
 
     # Vérification de l'existence des données déjà augmentées
-    if not os.path.exists(save_dir_train):
+    if not len(os.listdir(save_dir_train)) > 0:
         # Si le répertoire d'augmentation n'existe pas, augmenter les données
         df = generate_labeled_data(data_dir)
         healthy_train_data = df.loc[(df['label'] == 'Healthy') & (df['type'] == 'train')]
@@ -48,6 +48,8 @@ def main():
 
     # Préparer les données pour le modèle
     df = pd.read_csv(output_csv_path)
+
+    # df = pd.read_csv('src/labeled/labeled_dataset_initial.csv')
 
     label_map = {'Healthy': 0, 'Pneumonia': 1}
 

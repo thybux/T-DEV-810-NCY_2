@@ -1,5 +1,7 @@
 from tensorflow.keras import layers, models
 
+from src.visualization import TimeEpochCallback
+
 
 def model_ia(train_dataset, val_dataset):
     model = models.Sequential([
@@ -27,7 +29,10 @@ def model_ia(train_dataset, val_dataset):
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-    history = model.fit(train_dataset, validation_data=val_dataset, epochs=20)
+    time_callback = TimeEpochCallback()
+
+    # Entraîner le modèle avec le callback
+    history = model.fit(train_dataset, validation_data=val_dataset, epochs=20, callbacks=[time_callback])
 
     val_loss, val_acc = model.evaluate(val_dataset)
 
