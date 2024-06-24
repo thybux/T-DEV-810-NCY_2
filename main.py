@@ -2,7 +2,7 @@ import os
 
 import pandas as pd
 
-from src.data_handling import generate_labeled_data, create_dataset, increase_data
+from src.data_handling import generate_labeled_data, create_dataset, increase_data, mean_size
 from src.model import model_ia
 from src.visualization import history_plot
 
@@ -12,11 +12,12 @@ def main():
     data_dir = 'src/data/chest_Xray'
     output_csv_path = 'src/labeled/labeled_dataset.csv'
     save_dir_train = 'src/data/augmented/train'
+    mean_width, mean_height = mean_size(output_csv_path)
 
     # Vérification de l'existence des données déjà augmentées
     if not len(os.listdir(save_dir_train)) > 0:
         # Si le répertoire d'augmentation n'existe pas, augmenter les données
-        df = generate_labeled_data(data_dir)
+        df = generate_labeled_data(data_dir, )
         healthy_train_data = df.loc[(df['label'] == 'Healthy') & (df['type'] == 'train')]
         copy = 2
         increase_data(healthy_train_data, save_dir_train, copy)
@@ -57,12 +58,15 @@ def main():
     val_df = df[df['type'] == 'val']
     test_df = df[df['type'] == 'test']
 
-    train_dataset = create_dataset(train_df, label_map)
-    val_dataset = create_dataset(val_df, label_map)
+    train_dataset = create_dataset(train_df, label_map, batch_size=32,
+                                   target_size=(int(mean_width), int(mean_height)))
+    val_dataset = create_dataset(val_df, label_map, batch_size=32,
+                                 target_size=(int(mean_width), int(mean_height)))
     test_dataset = create_dataset(test_df, label_map)
 
     # Entraîner le modèle
-    model, history, val_loss, val_acc = model_ia(train_dataset, val_dataset)
+    model, history, val_loss, val_acc = model_ia(train_dataset, val_dataset,
+                                                 shape=(int(mean_width), int(mean_height), 1))
 
     # Visualiser les résultats
     history_plot(history)

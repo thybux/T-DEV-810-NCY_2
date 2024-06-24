@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 import tensorflow as tf
 from PIL import Image
@@ -53,16 +54,16 @@ def preprocess_image_with_tensorflow(filepath, label, label_map, target_size=(15
     return image_resized.numpy(), label
 
 
-def create_dataset(df, label_map, batch_size=32):
+def create_dataset(df, label_map, batch_size=32, target_size=(150, 150)):
     filepaths = df['filepath'].values
     labels = df['label'].values
 
     def generator():
         for filepath, label in zip(filepaths, labels):
-            yield preprocess_image_with_tensorflow(filepath, label, label_map)
+            yield preprocess_image_with_tensorflow(filepath, label, label_map, target_size)
 
     dataset = tf.data.Dataset.from_generator(generator, output_signature=(
-        tf.TensorSpec(shape=(150, 150, 1), dtype=tf.float32),
+        tf.TensorSpec(shape=(target_size[0], target_size[1], 1), dtype=tf.float32),
         tf.TensorSpec(shape=(len(label_map),), dtype=tf.float32)))
 
     dataset = dataset.shuffle(buffer_size=len(df))
@@ -91,3 +92,29 @@ def increase_data(data, save_dir, copy):
                              save_format='jpeg')):
             if j >= copy:
                 break
+
+
+def mean_size(path_csv):
+    data = pd.read_csv(path_csv)
+
+    sizes = []
+
+    for filepath in data['filepath']:
+        if os.path.exists(filepath):
+            try:
+                with Image.open(filepath) as img:
+                    sizes.append(img.size)
+            except Exception as e:
+                print(f"Erreur lors de l'ouverture de l'image {filepath}: {e}")
+
+    if sizes:
+        sizes_np = np.array(sizes)
+
+        mean_width = np.mean(sizes_np[:, 0])
+        mean_height = np.mean(sizes_np[:, 1])
+
+        # Afficher les résultats
+        print(f'Taille moyenne des images : {mean_width:.2f} pixels de large, {mean_height:.2f} pixels de haut.')
+        return mean_width, mean_height
+    else:
+        print("Aucune taille d'image n'a été collectée. Vérifiez les chemins des images dans votre fichier CSV.")

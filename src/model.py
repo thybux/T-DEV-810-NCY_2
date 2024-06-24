@@ -3,9 +3,9 @@ from tensorflow.keras import layers, models
 from src.visualization import TimeEpochCallback
 
 
-def model_ia(train_dataset, val_dataset):
+def model_ia(train_dataset, val_dataset, shape=(150, 150, 1)):
     model = models.Sequential([
-        layers.InputLayer(shape=(150, 150, 1)),
+        layers.InputLayer(shape=shape),
 
         layers.Conv2D(32, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
